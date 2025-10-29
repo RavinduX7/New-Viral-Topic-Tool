@@ -18,90 +18,70 @@ st.markdown("*Find viral opportunities from small channels for fast monetization
 # Sidebar Configuration
 st.sidebar.header("⚙️ Search Settings")
 days = st.sidebar.number_input("Days to Search (1-30):", min_value=1, max_value=30, value=7)
-max_subs = st.sidebar.number_input("Max Subscribers:", min_value=100, max_value=50000, value=5000)
-min_views = st.sidebar.number_input("Minimum Views:", min_value=1000, max_value=1000000, value=10000)
+max_subs = st.sidebar.number_input("Max Subscribers:", min_value=100, max_value=100000, value=10000)
+min_views = st.sidebar.number_input("Minimum Views:", min_value=100, max_value=1000000, value=1000)  # LOWERED DEFAULT
 results_per_keyword = st.sidebar.slider("Results Per Keyword:", 3, 10, 5)
+show_debug = st.sidebar.checkbox("Show Debug Info", value=False)
 
-# VIRAL AUTOMATION-FOCUSED KEYWORDS (Proven High-Performing Niches)
+# VIRAL AUTOMATION-FOCUSED KEYWORDS
 keywords = [
-    # TRUE CRIME & HORROR (HIGH CPM + VIRAL POTENTIAL)
+    # TRUE CRIME & HORROR
     "True Horror Stories", "Scary True Stories", "Horror Story Animation", 
     "True Crime Stories", "Unsolved Mysteries", "Creepy True Stories",
-    "Real Horror Stories", "True Scary Stories Animated", "Mr Nightmare Type Stories",
-    "Paranormal Stories", "Ghost Stories Real", "Urban Legends",
-    "Creepypasta Stories", "Reddit Scary Stories", "Let's Not Meet Stories",
+    "Real Horror Stories", "Paranormal Stories", "Ghost Stories Real",
     
-    # CELEBRITY GOSSIP & ENTERTAINMENT (ALWAYS TRENDING)
+    # CELEBRITY GOSSIP
     "Celebrity Gossip", "Celebrity News Today", "Hollywood Drama",
     "Celebrity Scandals", "Entertainment News", "Celebrity Breakup",
-    "Celebrity Couples", "Red Carpet Moments", "Celebrity Fails",
-    "Celebrity Transformation", "Celeb Before After", "Celebrity Lifestyle",
     
-    # REDDIT STORIES (PROVEN VIRAL NICHE)
+    # REDDIT STORIES
     "Reddit Stories", "AITA Stories", "Reddit Cheating Stories",
     "Relationship Reddit Stories", "Entitled Parents Reddit", "Revenge Stories Reddit",
     "Reddit Drama", "Ask Reddit Stories", "Petty Revenge Reddit",
-    "Malicious Compliance Reddit", "Reddit Nuclear Revenge", "Reddit Update Stories",
     
-    # MYSTERY & CONSPIRACY (HIGH ENGAGEMENT)
-    "Unsolved Mysteries 2025", "Conspiracy Theories", "Mystery Solved",
+    # MYSTERY & CONSPIRACY
+    "Unsolved Mysteries", "Conspiracy Theories", "Mystery Solved",
     "Strange Mysteries", "Unexplained Mysteries", "Missing Person Cases",
-    "Cold Case Files", "Mystery Documentary", "Conspiracy Theory Explained",
-    "Strange Disappearances", "Creepy Mysteries", "Unsolved Cases",
     
-    # AI & TECHNOLOGY (TRENDING NOW)
+    # AI & TECHNOLOGY
     "AI News", "ChatGPT Tutorial", "AI Tools", "Tech News 2025",
-    "AI Automation", "Make Money with AI", "AI vs Human", 
-    "Future Technology", "AI Innovation", "Tech Trends 2025",
+    "AI Automation", "Make Money with AI", "Future Technology",
     
-    # MOTIVATION & SUCCESS (HIGH CPM)
+    # MOTIVATION & SUCCESS
     "Motivational Speech", "Success Motivation", "Millionaire Mindset",
     "Motivational Video", "Entrepreneur Motivation", "Life Lessons",
-    "Self Improvement", "Discipline Motivation", "Sigma Male Motivation",
-    "Success Stories", "Motivational Quotes", "Rise and Grind",
     
-    # MAKE MONEY ONLINE (HIGHEST CPM NICHE)
-    "Make Money Online", "Passive Income", "Side Hustle Ideas 2025",
-    "How to Make Money", "Earn Money Online", "Make Money Fast",
-    "Online Business Ideas", "Affiliate Marketing", "Dropshipping Tutorial",
-    "Work From Home Jobs", "Make Money as a Teenager", "Easy Money Online",
+    # MAKE MONEY ONLINE
+    "Make Money Online", "Passive Income", "Side Hustle Ideas",
+    "How to Make Money", "Earn Money Online", "Online Business Ideas",
     
-    # AMAZING FACTS & EDUCATIONAL (VIRAL + SHORTS FRIENDLY)
+    # AMAZING FACTS
     "Amazing Facts", "Mind Blowing Facts", "Did You Know Facts",
-    "Psychology Facts", "Scary Facts", "Interesting Facts",
-    "Unknown Facts", "Space Facts", "Ocean Mysteries", "Brain Facts",
-    "Human Body Facts", "Science Facts", "History Facts",
+    "Psychology Facts", "Interesting Facts", "Space Facts",
     
-    # ANIMALS & PETS (ALWAYS VIRAL)
+    # ANIMALS & PETS
     "Funny Animals", "Cute Animals", "Animal Rescue", "Funny Dogs",
-    "Funny Cats", "Animal Fails", "Baby Animals", "Wild Animals",
-    "Animal Attacks", "Animal Saves", "Pet Videos", "Dog Rescue Stories",
+    "Funny Cats", "Baby Animals", "Wild Animals",
     
-    # LUXURY & LIFESTYLE (HIGH CPM)
+    # LUXURY LIFESTYLE
     "Luxury Lifestyle", "Rich Lifestyle", "Billionaire Lifestyle",
-    "Luxury Cars", "Mansion Tour", "Expensive Things", "Luxury Life",
-    "Luxury Homes", "Supercar Videos", "Rich Kids",
+    "Luxury Cars", "Mansion Tour", "Expensive Things",
     
-    # HEALTH & FITNESS (HIGH CPM + ENGAGEMENT)
+    # HEALTH & FITNESS
     "Weight Loss Tips", "Lose Belly Fat", "Fitness Motivation",
-    "Health Tips", "How to Lose Weight Fast", "Gym Motivation",
-    "Mental Health", "Anxiety Relief", "Sleep Better",
+    "Health Tips", "Mental Health", "Gym Motivation",
     
-    # FOOD & COOKING (VIRAL SHORTS)
+    # FOOD
     "Food Recipes", "Easy Recipes", "Cooking Hacks", "Street Food",
-    "Food Mukbang", "Recipe Videos", "Quick Meals", "Food Challenge",
     
-    # HISTORY & DOCUMENTARY (HIGH WATCH TIME)
+    # HISTORY
     "History Documentary", "World War 2", "Ancient History",
-    "History Explained", "Historical Mysteries", "Ancient Civilizations",
     
-    # RELATIONSHIP & DATING (HIGH ENGAGEMENT)
+    # RELATIONSHIP
     "Relationship Advice", "Dating Tips", "Toxic Relationship Signs",
-    "Relationship Psychology", "Red Flags Dating", "Relationship Goals",
     
-    # LIFE HACKS & DIY (SHORTS VIRAL)
+    # LIFE HACKS
     "Life Hacks", "Useful Life Hacks", "DIY Projects", "Cleaning Hacks",
-    "Amazing Life Hacks", "5 Minute Crafts", "Smart Life Hacks",
 ]
 
 # Fetch Data Button
@@ -109,6 +89,9 @@ if st.button("🔍 Find Viral Opportunities", type="primary"):
     try:
         start_date = (datetime.utcnow() - timedelta(days=int(days))).isoformat("T") + "Z"
         all_results = []
+        api_errors = []
+        total_videos_found = 0
+        
         progress_bar = st.progress(0)
         status_text = st.empty()
         
@@ -122,76 +105,114 @@ if st.button("🔍 Find Viral Opportunities", type="primary"):
                 "part": "snippet",
                 "q": keyword,
                 "type": "video",
-                "order": "viewCount",
+                "order": "date",  # CHANGED FROM viewCount (it's broken in API)
                 "publishedAfter": start_date,
                 "maxResults": results_per_keyword,
                 "key": API_KEY,
             }
             
-            response = requests.get(YOUTUBE_SEARCH_URL, params=search_params)
-            data = response.json()
-            
-            if "items" not in data or not data["items"]:
-                continue
-            
-            videos = data["items"]
-            video_ids = [video["id"]["videoId"] for video in videos if "id" in video and "videoId" in video["id"]]
-            channel_ids = [video["snippet"]["channelId"] for video in videos if "snippet" in video and "channelId" in video["snippet"]]
-            
-            if not video_ids or not channel_ids:
-                continue
-            
-            # Fetch video statistics
-            stats_params = {"part": "statistics", "id": ",".join(video_ids), "key": API_KEY}
-            stats_response = requests.get(YOUTUBE_VIDEO_URL, params=stats_params)
-            stats_data = stats_response.json()
-            
-            if "items" not in stats_data:
-                continue
-            
-            # Fetch channel statistics
-            channel_params = {"part": "statistics", "id": ",".join(channel_ids), "key": API_KEY}
-            channel_response = requests.get(YOUTUBE_CHANNEL_URL, params=channel_params)
-            channel_data = channel_response.json()
-            
-            if "items" not in channel_data:
-                continue
-            
-            stats = stats_data["items"]
-            channels = channel_data["items"]
-            
-            for video, stat, channel in zip(videos, stats, channels):
-                views = int(stat["statistics"].get("viewCount", 0))
-                likes = int(stat["statistics"].get("likeCount", 0))
-                comments = int(stat["statistics"].get("commentCount", 0))
-                subs = int(channel["statistics"].get("subscriberCount", 0))
+            try:
+                response = requests.get(YOUTUBE_SEARCH_URL, params=search_params, timeout=10)
+                data = response.json()
                 
-                # ADVANCED FILTERING FOR VIRAL POTENTIAL
-                if subs < max_subs and views >= min_views:
-                    viral_score = round(views / max(subs, 1), 2)  # Views per subscriber
-                    engagement_rate = round(((likes + comments) / views * 100), 2) if views > 0 else 0
+                # DEBUG: Show API response
+                if show_debug:
+                    st.write(f"**API Response for '{keyword}':**", data)
+                
+                # Check for API errors
+                if "error" in data:
+                    api_errors.append(f"{keyword}: {data['error'].get('message', 'Unknown error')}")
+                    continue
+                
+                if "items" not in data or not data["items"]:
+                    if show_debug:
+                        st.warning(f"No items returned for: {keyword}")
+                    continue
+                
+                videos = data["items"]
+                total_videos_found += len(videos)
+                
+                video_ids = [video["id"]["videoId"] for video in videos if "id" in video and "videoId" in video["id"]]
+                channel_ids = [video["snippet"]["channelId"] for video in videos if "snippet" in video and "channelId" in video["snippet"]]
+                
+                if not video_ids or not channel_ids:
+                    continue
+                
+                # Fetch video statistics
+                stats_params = {"part": "statistics", "id": ",".join(video_ids), "key": API_KEY}
+                stats_response = requests.get(YOUTUBE_VIDEO_URL, params=stats_params, timeout=10)
+                stats_data = stats_response.json()
+                
+                if "items" not in stats_data:
+                    continue
+                
+                # Fetch channel statistics
+                channel_params = {"part": "statistics", "id": ",".join(channel_ids), "key": API_KEY}
+                channel_response = requests.get(YOUTUBE_CHANNEL_URL, params=channel_params, timeout=10)
+                channel_data = channel_response.json()
+                
+                if "items" not in channel_data:
+                    continue
+                
+                stats = stats_data["items"]
+                channels = channel_data["items"]
+                
+                # Match videos with their stats and channels
+                for video in videos:
+                    video_id = video["id"]["videoId"]
                     
-                    all_results.append({
-                        "Keyword": keyword,
-                        "Title": video["snippet"].get("title", "N/A"),
-                        "URL": f"https://www.youtube.com/watch?v={video['id']['videoId']}",
-                        "Views": views,
-                        "Likes": likes,
-                        "Comments": comments,
-                        "Subscribers": subs,
-                        "Viral Score": viral_score,
-                        "Engagement Rate": f"{engagement_rate}%",
-                        "Published": video["snippet"].get("publishedAt", "")[:10]
-                    })
-            
-            time.sleep(0.1)  # Avoid API rate limits
+                    # Find matching stats
+                    stat = next((s for s in stats if s["id"] == video_id), None)
+                    if not stat:
+                        continue
+                    
+                    # Find matching channel
+                    channel_id = video["snippet"]["channelId"]
+                    channel = next((c for c in channels if c["id"] == channel_id), None)
+                    if not channel:
+                        continue
+                    
+                    views = int(stat["statistics"].get("viewCount", 0))
+                    likes = int(stat["statistics"].get("likeCount", 0))
+                    comments = int(stat["statistics"].get("commentCount", 0))
+                    subs = int(channel["statistics"].get("subscriberCount", 0))
+                    
+                    # APPLY FILTERS
+                    if subs <= max_subs and views >= min_views:
+                        viral_score = round(views / max(subs, 1), 2)
+                        engagement_rate = round(((likes + comments) / views * 100), 2) if views > 0 else 0
+                        
+                        all_results.append({
+                            "Keyword": keyword,
+                            "Title": video["snippet"].get("title", "N/A"),
+                            "URL": f"https://www.youtube.com/watch?v={video_id}",
+                            "Views": views,
+                            "Likes": likes,
+                            "Comments": comments,
+                            "Subscribers": subs,
+                            "Viral Score": viral_score,
+                            "Engagement Rate": f"{engagement_rate}%",
+                            "Published": video["snippet"].get("publishedAt", "")[:10]
+                        })
+                
+                time.sleep(0.2)  # Avoid API rate limits
+                
+            except requests.exceptions.Timeout:
+                api_errors.append(f"{keyword}: Request timeout")
+            except Exception as e:
+                api_errors.append(f"{keyword}: {str(e)}")
         
         status_text.empty()
         progress_bar.empty()
         
+        # Show debug info
+        if show_debug:
+            st.info(f"📊 **Debug Info:**\n- Total videos fetched: {total_videos_found}\n- Videos after filtering: {len(all_results)}")
+            if api_errors:
+                st.error(f"⚠️ **API Errors ({len(api_errors)}):**\n" + "\n".join(api_errors[:10]))
+        
         # Display Results
         if all_results:
-            # Sort by Viral Score (highest first)
             df = pd.DataFrame(all_results)
             df = df.sort_values("Viral Score", ascending=False)
             
@@ -200,7 +221,7 @@ if st.button("🔍 Find Viral Opportunities", type="primary"):
             # Display Key Metrics
             col1, col2, col3, col4 = st.columns(4)
             with col1:
-                st.metric("Total Videos Found", len(df))
+                st.metric("Total Videos", len(df))
             with col2:
                 st.metric("Avg Viral Score", f"{df['Viral Score'].mean():.2f}")
             with col3:
@@ -216,7 +237,7 @@ if st.button("🔍 Find Viral Opportunities", type="primary"):
             st.download_button(
                 label="📥 Download CSV Report",
                 data=csv,
-                file_name=f"viral_opportunities_{datetime.now().strftime('%Y%m%d')}.csv",
+                file_name=f"viral_opportunities_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
                 mime="text/csv",
             )
             
@@ -235,27 +256,41 @@ if st.button("🔍 Find Viral Opportunities", type="primary"):
                         st.metric("Subscribers", f"{row['Subscribers']:,}")
                         st.metric("Engagement", row['Engagement Rate'])
         else:
-            st.warning("❌ No viral opportunities found. Try adjusting your filters.")
+            st.warning("❌ No viral opportunities found with current filters.")
+            st.info("""
+            **💡 Try these solutions:**
+            1. ✅ **Lower Min Views** to 500 or 1,000
+            2. ✅ **Increase Max Subscribers** to 20,000+
+            3. ✅ **Increase Days** to 14-30 days
+            4. ✅ **Enable Debug Mode** to see what's being returned
+            5. ✅ Check your API quota usage: https://console.cloud.google.com/apis/api/youtube.googleapis.com/quotas
+            """)
+            
+            if show_debug:
+                st.write(f"**Total videos fetched before filtering:** {total_videos_found}")
     
     except Exception as e:
-        st.error(f"⚠️ Error: {e}")
-        st.info("Check your API key or try reducing the number of searches.")
+        st.error(f"⚠️ Critical Error: {e}")
+        st.info("Check your API key or network connection.")
 
 # Instructions
 with st.sidebar:
     st.markdown("---")
-    st.subheader("📖 How to Use")
+    st.subheader("📖 Quick Start")
     st.markdown("""
-    1. **Set your filters** (Days, Max Subs, Min Views)
-    2. **Click 'Find Viral Opportunities'**
-    3. **Review Viral Score** - Higher = More viral potential
-    4. **Download CSV** for analysis
-    5. **Create similar content** in winning niches
+    **Recommended Settings:**
+    - Days: 7-14
+    - Max Subs: 10,000
+    - Min Views: 1,000
+    - Results: 5 per keyword
     
-    **Viral Score = Views ÷ Subscribers**
-    
-    Higher scores = Small channels with viral content!
+    **Viral Score Meaning:**
+    - 50+ = Very viral
+    - 20-50 = Good potential
+    - 10-20 = Decent
+    - <10 = Low viral potential
     """)
     
     st.markdown("---")
-    st.info("💡 **Tip:** Focus on keywords with Viral Score > 50 for best results!")
+    st.warning("⚠️ **API Quota:** Search costs 100 units each. You have 10,000 units/day.")
+    st.info(f"**Current Search Cost:** ~{len(keywords) * 100} units")
