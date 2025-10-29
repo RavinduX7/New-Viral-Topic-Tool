@@ -4,232 +4,207 @@ import pandas as pd
 from datetime import datetime, timedelta
 import time
 
-# YouTube API Key
-API_KEY = "AIzaSyDCGBvdrpEkRO4XqCRW04u8JThpkBgZEwE"
+# YOUR 4 API KEYS - AUTOMATIC ROTATION SYSTEM
+API_KEYS = [
+    "AIzaSyDCGBvdrpEkRO4XqCRW04u8JThpkBgZEwE",  # Key 1
+    "AIzaSyCsQOpAt_ils7wX4e5cPjCHy381w3RBIxk",  # Key 2
+    "AIzaSyAvi5dznmjpopFjRW-OTSnw9Sd-Hj3PjoQ",  # Key 3
+    "AIzaSyBYtN2JA8eDsn_zuo6YmVoFizEMerKTtRk",  # Key 4
+]
+
+current_key_index = 0
+
+def get_next_api_key():
+    """Automatically rotate to next API key when quota exceeded"""
+    global current_key_index
+    current_key_index = (current_key_index + 1) % len(API_KEYS)
+    return API_KEYS[current_key_index]
+
 YOUTUBE_SEARCH_URL = "https://www.googleapis.com/youtube/v3/search"
 YOUTUBE_VIDEO_URL = "https://www.googleapis.com/youtube/v3/videos"
 YOUTUBE_CHANNEL_URL = "https://www.googleapis.com/youtube/v3/channels"
 
 # Streamlit App Configuration
-st.set_page_config(page_title="Premium Viral Niche Finder", layout="wide")
-st.title("💰 YouTube Viral Finder - Global High-CPM Markets")
-st.markdown("*Target 30+ premium countries (excluding South Asia)*")
+st.set_page_config(page_title="Multi-Key Viral Finder Pro", layout="wide")
+st.title("💰 YouTube Viral Finder - 4 API Keys (40K Units/Day)")
+st.markdown("*Automatic key rotation when quota exceeded*")
 
-# ===== EXPANDED COUNTRY FILTER =====
-st.sidebar.header("🌍 SELECT TARGET COUNTRIES")
+# Sidebar - Country Selection
+st.sidebar.header("🌍 SELECT COUNTRIES")
 
-# Organize by CPM tier
-st.sidebar.markdown("### 🥇 Tier 1: Highest CPM ($7-32)")
 col1, col2 = st.sidebar.columns(2)
 with col1:
-    us = st.sidebar.checkbox("🇺🇸 USA ($32)", value=True, key="us")
-    au = st.sidebar.checkbox("🇦🇺 Australia ($36)", value=True, key="au")
-    no = st.sidebar.checkbox("🇳🇴 Norway ($20)", value=False, key="no")
-    gb = st.sidebar.checkbox("🇬🇧 UK ($13)", value=True, key="gb")
-    ca = st.sidebar.checkbox("🇨🇦 Canada ($29)", value=False, key="ca")
+    us = st.sidebar.checkbox("🇺🇸 USA", value=True)
+    gb = st.sidebar.checkbox("🇬🇧 UK", value=True)
+    ca = st.sidebar.checkbox("🇨🇦 Canada", value=True)
+    au = st.sidebar.checkbox("🇦🇺 Australia", value=False)
+    de = st.sidebar.checkbox("🇩🇪 Germany", value=False)
 with col2:
-    ch = st.sidebar.checkbox("🇨🇭 Switzerland ($23)", value=False, key="ch")
-    nz = st.sidebar.checkbox("🇳🇿 New Zealand ($28)", value=False, key="nz")
-    dk = st.sidebar.checkbox("🇩🇰 Denmark ($17)", value=False, key="dk")
-    de = st.sidebar.checkbox("🇩🇪 Germany ($14)", value=False, key="de")
+    no = st.sidebar.checkbox("🇳🇴 Norway", value=False)
+    se = st.sidebar.checkbox("🇸🇪 Sweden", value=False)
+    nl = st.sidebar.checkbox("🇳🇱 Netherlands", value=False)
+    fr = st.sidebar.checkbox("🇫🇷 France", value=False)
+    jp = st.sidebar.checkbox("🇯🇵 Japan", value=False)
 
-st.sidebar.markdown("### 🥈 Tier 2: Very High CPM ($4-7)")
-col3, col4 = st.sidebar.columns(2)
-with col3:
-    nl = st.sidebar.checkbox("🇳🇱 Netherlands ($18)", value=False, key="nl")
-    se = st.sidebar.checkbox("🇸🇪 Sweden ($18)", value=False, key="se")
-    be = st.sidebar.checkbox("🇧🇪 Belgium ($20)", value=False, key="be")
-    at = st.sidebar.checkbox("🇦🇹 Austria ($11)", value=False, key="at")
-    fi = st.sidebar.checkbox("🇫🇮 Finland ($22)", value=False, key="fi")
-with col4:
-    ie = st.sidebar.checkbox("🇮🇪 Ireland ($8)", value=False, key="ie")
-    fr = st.sidebar.checkbox("🇫🇷 France ($10)", value=False, key="fr")
-    sg = st.sidebar.checkbox("🇸🇬 Singapore ($9)", value=False, key="sg")
-    jp = st.sidebar.checkbox("🇯🇵 Japan ($11)", value=False, key="jp")
-
-st.sidebar.markdown("### 🥉 Tier 3: High CPM ($2-4)")
-col5, col6 = st.sidebar.columns(2)
-with col5:
-    es = st.sidebar.checkbox("🇪🇸 Spain ($8)", value=False, key="es")
-    it = st.sidebar.checkbox("🇮🇹 Italy ($8)", value=False, key="it")
-    kr = st.sidebar.checkbox("🇰🇷 South Korea ($12)", value=False, key="kr")
-    ae = st.sidebar.checkbox("🇦🇪 UAE ($8)", value=False, key="ae")
-    il = st.sidebar.checkbox("🇮🇱 Israel ($9)", value=False, key="il")
-with col6:
-    hk = st.sidebar.checkbox("🇭🇰 Hong Kong ($12)", value=False, key="hk")
-    pl = st.sidebar.checkbox("🇵🇱 Poland ($8)", value=False, key="pl")
-    cz = st.sidebar.checkbox("🇨🇿 Czech Rep ($7)", value=False, key="cz")
-    pt = st.sidebar.checkbox("🇵🇹 Portugal ($11)", value=False, key="pt")
-
-st.sidebar.markdown("### 💵 Tier 4: Medium-High CPM ($1-2)")
-col7, col8 = st.sidebar.columns(2)
-with col7:
-    mx = st.sidebar.checkbox("🇲🇽 Mexico ($8)", value=False, key="mx")
-    br = st.sidebar.checkbox("🇧🇷 Brazil ($5)", value=False, key="br")
-    sa = st.sidebar.checkbox("🇸🇦 Saudi Arabia ($8)", value=False, key="sa")
-    gr = st.sidebar.checkbox("🇬🇷 Greece ($8)", value=False, key="gr")
-with col8:
-    ro = st.sidebar.checkbox("🇷🇴 Romania ($7)", value=False, key="ro")
-    hu = st.sidebar.checkbox("🇭🇺 Hungary ($6)", value=False, key="hu")
-    za = st.sidebar.checkbox("🇿🇦 South Africa ($6)", value=False, key="za")
-
-# Build country mapping
+# Build target regions
 country_map = {
-    # Tier 1 (Highest CPM)
-    "us": ("US", "🇺🇸 USA", "Very High", "$32"),
-    "au": ("AU", "🇦🇺 Australia", "Very High", "$36"),
-    "no": ("NO", "🇳🇴 Norway", "Very High", "$20"),
-    "gb": ("GB", "🇬🇧 UK", "Very High", "$13"),
-    "ca": ("CA", "🇨🇦 Canada", "Very High", "$29"),
-    "ch": ("CH", "🇨🇭 Switzerland", "Very High", "$23"),
-    "nz": ("NZ", "🇳🇿 New Zealand", "Very High", "$28"),
-    "dk": ("DK", "🇩🇰 Denmark", "Very High", "$17"),
-    "de": ("DE", "🇩🇪 Germany", "High", "$14"),
-    # Tier 2 (Very High CPM)
-    "nl": ("NL", "🇳🇱 Netherlands", "High", "$18"),
-    "se": ("SE", "🇸🇪 Sweden", "High", "$18"),
-    "be": ("BE", "🇧🇪 Belgium", "High", "$20"),
-    "at": ("AT", "🇦🇹 Austria", "High", "$11"),
-    "fi": ("FI", "🇫🇮 Finland", "High", "$22"),
-    "ie": ("IE", "🇮🇪 Ireland", "High", "$8"),
-    "fr": ("FR", "🇫🇷 France", "High", "$10"),
-    "sg": ("SG", "🇸🇬 Singapore", "High", "$9"),
-    "jp": ("JP", "🇯🇵 Japan", "High", "$11"),
-    # Tier 3 (High CPM)
-    "es": ("ES", "🇪🇸 Spain", "Medium-High", "$8"),
-    "it": ("IT", "🇮🇹 Italy", "Medium-High", "$8"),
-    "kr": ("KR", "🇰🇷 South Korea", "Medium-High", "$12"),
-    "ae": ("AE", "🇦🇪 UAE", "Medium-High", "$8"),
-    "il": ("IL", "🇮🇱 Israel", "Medium-High", "$9"),
-    "hk": ("HK", "🇭🇰 Hong Kong", "Medium-High", "$12"),
-    "pl": ("PL", "🇵🇱 Poland", "Medium-High", "$8"),
-    "cz": ("CZ", "🇨🇿 Czechia", "Medium-High", "$7"),
-    "pt": ("PT", "🇵🇹 Portugal", "Medium-High", "$11"),
-    # Tier 4 (Medium-High CPM)
-    "mx": ("MX", "🇲🇽 Mexico", "Medium", "$8"),
-    "br": ("BR", "🇧🇷 Brazil", "Medium", "$5"),
-    "sa": ("SA", "🇸🇦 Saudi Arabia", "Medium", "$8"),
-    "gr": ("GR", "🇬🇷 Greece", "Medium", "$8"),
-    "ro": ("RO", "🇷🇴 Romania", "Medium", "$7"),
-    "hu": ("HU", "🇭🇺 Hungary", "Medium", "$6"),
-    "za": ("ZA", "🇿🇦 South Africa", "Medium", "$6"),
+    "us": "US", "gb": "GB", "ca": "CA", "au": "AU", "de": "DE",
+    "no": "NO", "se": "SE", "nl": "NL", "fr": "FR", "jp": "JP"
 }
 
-# Build selected regions list
 target_regions = []
-selected_countries_display = []
-for key, (code, name, tier, cpm) in country_map.items():
-    if locals()[key]:  # Check if checkbox is selected
+for key, code in country_map.items():
+    if locals()[key]:
         target_regions.append(code)
-        selected_countries_display.append(name)
 
-# Display selected countries
 if target_regions:
-    st.sidebar.success(f"✅ **Selected {len(target_regions)} countries**")
-    with st.sidebar.expander("View Selected Countries"):
-        st.write(", ".join(selected_countries_display))
+    st.sidebar.success(f"✅ {len(target_regions)} countries selected")
 else:
     st.sidebar.error("⚠️ Select at least one country!")
 
 st.sidebar.markdown("---")
 
-# Other Settings
-st.sidebar.header("⚙️ Search Settings")
+# Settings
+st.sidebar.header("⚙️ SEARCH SETTINGS")
 days = st.sidebar.number_input("Days to Search:", min_value=1, max_value=30, value=14)
 max_subs = st.sidebar.number_input("Max Subscribers:", min_value=100, max_value=100000, value=15000)
 min_views = st.sidebar.number_input("Minimum Views:", min_value=100, max_value=1000000, value=1000)
 results_per_keyword = st.sidebar.slider("Results Per Keyword:", 5, 20, 10)
 
-# Search Strategy
-st.sidebar.subheader("🎯 Search Strategy")
-search_mode = st.sidebar.radio(
-    "Choose Mode:",
-    ["Fast (20 keywords)", "Balanced (40 keywords)", "Deep (100+ keywords)"]
+# Keyword Strategy
+st.sidebar.subheader("🎯 KEYWORD MODE")
+keyword_mode = st.sidebar.selectbox(
+    "Choose:",
+    ["Economy (10 keywords)", "Balanced (20 keywords)", "Standard (40 keywords)", "Deep (100 keywords)"]
 )
 
-show_debug = st.sidebar.checkbox("Show Debug Info", value=False)
-
-# KEYWORDS (Same as before)
-if search_mode == "Fast (20 keywords)":
+# Keywords by mode
+if "Economy" in keyword_mode:
     keywords = [
-        "how to retire early", "retirement planning tips", "best retirement advice",
-        "social security tips", "medicare explained", "passive income ideas",
-        "real estate investing beginners", "how to lose weight after 50",
-        "health tips for seniors", "dividend investing explained",
-        "side hustle ideas", "make money online", "stock market beginners",
-        "gardening tips beginners", "home improvement ideas",
-        "best places to retire", "cooking for two", "senior fitness",
-        "financial planning retirement", "downsizing tips",
+        "retirement planning tips", "medicare explained", "passive income ideas",
+        "how to lose weight after 50", "real estate investing beginners",
+        "side hustle ideas", "stock market beginners", "senior fitness",
+        "make money online", "health tips seniors",
     ]
-elif search_mode == "Balanced (40 keywords)":
+elif "Balanced" in keyword_mode:
     keywords = [
-        "how to retire early", "retirement planning tips", "best retirement advice",
-        "social security tips", "how to save for retirement", "retirement income ideas",
-        "medicare explained", "medicare advantage plans", "financial planning retirement",
-        "how to lose weight after 50", "health tips for seniors", "senior fitness",
-        "arthritis pain relief", "heart health tips", "healthy aging tips",
-        "real estate investing beginners", "passive income ideas", "dividend investing",
-        "stock market beginners", "how to invest money", "side hustle ideas",
-        "make money online", "financial freedom tips",
-        "gardening tips beginners", "vegetable garden tips", "home improvement ideas",
-        "best places to retire", "RV living full time", "downsizing your home",
-        "cooking for two", "easy dinner recipes", "budget cooking tips",
-        "smartphone tips seniors", "avoiding online scams", "world war 2 documentary",
-        "american history explained", "ancient civilizations",
+        "retirement planning tips", "medicare explained", "social security tips",
+        "passive income ideas", "how to lose weight after 50", "senior fitness",
+        "real estate investing beginners", "dividend investing", "side hustle ideas",
+        "make money online", "stock market beginners", "financial planning retirement",
+        "health tips seniors", "arthritis pain relief", "gardening tips beginners",
+        "home improvement ideas", "cooking for two", "best places to retire",
+        "smartphone tips seniors", "world war 2 documentary",
+    ]
+elif "Standard" in keyword_mode:
+    keywords = [
+        "retirement planning tips", "medicare explained", "social security tips",
+        "how to save for retirement", "passive income ideas", "financial freedom",
+        "how to lose weight after 50", "senior fitness", "heart health tips",
+        "real estate investing beginners", "dividend investing", "stock market basics",
+        "side hustle ideas", "make money online", "work from home jobs",
+        "financial planning retirement", "retirement income ideas", "early retirement",
+        "health tips seniors", "arthritis pain relief", "healthy aging",
+        "gardening tips beginners", "vegetable garden tips", "home improvement",
+        "cooking for two", "easy dinner recipes", "budget cooking",
+        "best places to retire", "RV living", "downsizing tips",
+        "smartphone tips seniors", "avoiding scams", "world war 2 documentary",
+        "american history", "dating after 50", "grandparenting tips",
+        "estate planning", "how to invest", "classic cars",
     ]
 else:  # Deep
     keywords = [
-        "how to retire early", "retirement planning tips", "best retirement advice",
-        "social security tips 2025", "how to save for retirement", "retirement income ideas",
-        "retirement mistakes avoid", "retire on social security", "early retirement tips",
-        "medicare explained simply", "medicare vs medicare advantage", "medicare supplement plans",
-        "medicare part d plans", "health insurance seniors", "long term care insurance",
+        # RETIREMENT & FINANCE (Very High CPM)
+        "retirement planning tips", "medicare explained", "social security tips",
+        "how to retire early", "retirement income ideas", "best retirement advice",
+        "401k withdrawal strategy", "retire on social security", "financial planning retirement",
+        "early retirement tips", "retirement budget", "pension planning",
+        # MEDICARE & INSURANCE
+        "medicare vs medicare advantage", "medicare supplement plans", "medicare part d",
+        "health insurance seniors", "long term care insurance", "medicare open enrollment",
+        # HEALTH FOR 50+
         "how to lose weight after 50", "health tips for seniors", "senior fitness routine",
         "arthritis pain relief natural", "heart health after 60", "blood pressure control",
-        "diabetes management tips", "joint pain relief", "healthy aging secrets",
+        "diabetes management tips", "joint pain relief", "improve memory naturally",
+        "healthy aging secrets", "senior nutrition tips", "boost energy after 50",
+        # INVESTING & MONEY
         "real estate investing beginners", "passive income ideas 2025", "dividend investing explained",
         "stock market basics", "how to invest in stocks", "best investment strategies",
+        "how to invest 100k", "retirement investment tips", "financial independence",
+        # MAKE MONEY ONLINE
         "side hustle ideas 2025", "make money online", "work from home jobs",
-        "affiliate marketing beginners", "dropshipping tutorial",
-        "home improvement ideas", "DIY home projects", "gardening tips beginners",
-        "vegetable garden tips", "container gardening", "home organization tips",
+        "passive income streams", "online business ideas", "affiliate marketing beginners",
+        "dropshipping tutorial", "how to make money fast", "earn money online",
+        # HOME & LIFESTYLE
+        "gardening tips beginners", "vegetable garden tips", "home improvement ideas",
+        "container gardening", "raised bed garden", "home organization tips",
+        "decluttering tips", "woodworking projects", "DIY home projects",
+        # FOOD & COOKING
         "easy dinner recipes", "cooking for two", "quick meal ideas",
+        "healthy cooking tips", "budget cooking", "meal prep ideas",
+        "comfort food recipes", "traditional recipes",
+        # TRAVEL & RETIREMENT LIFESTYLE
         "best places to retire", "RV living full time", "retirement travel tips",
+        "budget travel tips", "senior travel", "downsizing your home",
+        # RELATIONSHIPS
         "relationship advice over 50", "dating after 50", "grandparenting tips",
-        "world war 2 documentary", "ancient history explained", "cold war documentary",
-        "smartphone tips seniors", "avoiding online scams", "facebook tutorial seniors",
-        "estate planning explained", "how to write a will", "living trust vs will",
-        "classic car restoration", "woodworking for beginners", "fishing tips beginners",
+        "dealing with adult children", "marriage after 50",
+        # HISTORY & EDUCATION
+        "world war 2 documentary", "ancient history explained", "american history",
+        "cold war documentary", "vietnam war", "historical mysteries",
+        # TECHNOLOGY
+        "smartphone tips seniors", "ipad for beginners", "avoiding online scams",
+        "facebook tutorial seniors", "computer basics", "internet safety",
+        # LEGAL & ESTATE
+        "estate planning explained", "how to write a will", "power of attorney",
+        "living trust vs will", "probate process",
     ]
 
+# Calculate quota usage
+estimated_searches = len(keywords) * len(target_regions)
+estimated_cost = estimated_searches * 100
+
+st.sidebar.markdown("---")
+st.sidebar.subheader("📊 QUOTA CALCULATOR")
+st.sidebar.metric("Estimated Cost", f"{estimated_cost:,} units")
+st.sidebar.metric("Available", "40,000 units")
+
+if estimated_cost <= 40000:
+    remaining = 40000 - estimated_cost
+    st.sidebar.success(f"✅ {remaining:,} units remaining")
+    st.sidebar.progress(estimated_cost / 40000)
+else:
+    st.sidebar.error(f"⚠️ Exceeds limit by {estimated_cost - 40000:,} units")
+
+st.sidebar.caption(f"Searches: {len(keywords)} keywords × {len(target_regions)} countries = {estimated_searches}")
+
 # Main Search Button
-if st.button("🔍 SEARCH VIRAL OPPORTUNITIES", type="primary", use_container_width=True):
+if st.button("🔍 START SEARCH (Auto Key Rotation)", type="primary", use_container_width=True):
     if not target_regions:
-        st.error("⚠️ **Please select at least one country!**")
+        st.error("⚠️ Select at least one country!")
     else:
-        st.info(f"**🌍 Searching {len(target_regions)} countries:** {', '.join(selected_countries_display[:5])}{'...' if len(selected_countries_display) > 5 else ''}")
+        st.info(f"🔑 Using 4 API keys with auto-rotation | 🌍 {len(target_regions)} countries | 🎯 {len(keywords)} keywords")
         
         try:
             start_date = (datetime.utcnow() - timedelta(days=int(days))).isoformat("T") + "Z"
             all_results = []
-            total_videos_found = 0
             
             progress_bar = st.progress(0)
             status_text = st.empty()
+            key_status = st.empty()
             
             total_searches = len(keywords) * len(target_regions)
             current_search = 0
+            key_switches = 0
             
-            # Search each country
-            for region_code in target_regions:
-                # Get country display name
-                region_name = next((name for key, (code, name, _, _) in country_map.items() if code == region_code), region_code)
-                st.write(f"### 🔎 {region_name}")
-                
+            for region in target_regions:
                 for keyword in keywords:
                     current_search += 1
-                    status_text.text(f"[{region_name}] {keyword} ({current_search}/{total_searches})")
+                    status_text.text(f"[{region}] {keyword} ({current_search}/{total_searches})")
+                    key_status.info(f"🔑 Using API Key #{current_key_index + 1}/4")
                     progress_bar.progress(current_search / total_searches)
+                    
+                    current_key = API_KEYS[current_key_index]
                     
                     search_params = {
                         "part": "snippet",
@@ -238,40 +213,53 @@ if st.button("🔍 SEARCH VIRAL OPPORTUNITIES", type="primary", use_container_wi
                         "order": "date",
                         "publishedAfter": start_date,
                         "maxResults": results_per_keyword,
-                        "regionCode": region_code,
+                        "regionCode": region,
                         "relevanceLanguage": "en",
                         "videoDuration": "medium",
-                        "key": API_KEY,
+                        "key": current_key,
                     }
                     
                     try:
                         response = requests.get(YOUTUBE_SEARCH_URL, params=search_params, timeout=10)
                         data = response.json()
                         
+                        # Handle quota exceeded - auto switch to next key
                         if "error" in data:
-                            if "quotaExceeded" in str(data.get("error", {})):
-                                st.error("⚠️ **API Quota Exceeded!** Reduce countries/keywords.")
-                                break
-                            continue
+                            error_reason = data["error"].get("errors", [{}])[0].get("reason", "")
+                            
+                            if "quotaExceeded" in error_reason:
+                                key_switches += 1
+                                st.warning(f"⚠️ Key #{current_key_index + 1} exhausted. Switching to Key #{current_key_index + 2}...")
+                                
+                                current_key = get_next_api_key()
+                                search_params["key"] = current_key
+                                
+                                # Retry with new key
+                                response = requests.get(YOUTUBE_SEARCH_URL, params=search_params, timeout=10)
+                                data = response.json()
+                                
+                                if "error" in data:
+                                    st.error(f"❌ All 4 API keys exhausted! Found {len(all_results)} results before limit.")
+                                    break
+                            else:
+                                continue
                         
                         if "items" not in data or not data["items"]:
                             continue
                         
                         videos = data["items"]
-                        total_videos_found += len(videos)
-                        
                         video_ids = [v["id"]["videoId"] for v in videos if "id" in v and "videoId" in v["id"]]
-                        channel_ids = [v["snippet"]["channelId"] for v in videos if "snippet" in v]
+                        channel_ids = list(set([v["snippet"]["channelId"] for v in videos if "snippet" in v]))
                         
                         if not video_ids:
                             continue
                         
-                        # Get statistics
-                        stats_params = {"part": "statistics", "id": ",".join(video_ids), "key": API_KEY}
+                        # Get stats
+                        stats_params = {"part": "statistics", "id": ",".join(video_ids), "key": current_key}
                         stats_response = requests.get(YOUTUBE_VIDEO_URL, params=stats_params, timeout=10)
                         stats_data = stats_response.json()
                         
-                        channel_params = {"part": "statistics", "id": ",".join(channel_ids), "key": API_KEY}
+                        channel_params = {"part": "statistics", "id": ",".join(channel_ids), "key": current_key}
                         channel_response = requests.get(YOUTUBE_CHANNEL_URL, params=channel_params, timeout=10)
                         channel_data = channel_response.json()
                         
@@ -299,34 +287,33 @@ if st.button("🔍 SEARCH VIRAL OPPORTUNITIES", type="primary", use_container_wi
                             
                             if subs <= max_subs and views >= min_views:
                                 viral_score = round(views / max(subs, 1), 2)
-                                engagement_rate = round(((likes + comments) / views * 100), 2) if views > 0 else 0
-                                
-                                # Get CPM tier for this country
-                                cpm_tier = next((tier for key, (code, _, tier, _) in country_map.items() if code == region_code), "Medium")
+                                engagement = round(((likes + comments) / views * 100), 2) if views > 0 else 0
                                 
                                 all_results.append({
-                                    "Country": region_name,
-                                    "CPM Tier": cpm_tier,
+                                    "Country": region,
                                     "Keyword": keyword,
                                     "Title": video["snippet"].get("title", "N/A")[:80],
                                     "URL": f"https://www.youtube.com/watch?v={video_id}",
                                     "Views": views,
                                     "Likes": likes,
                                     "Comments": comments,
-                                    "Subscribers": subs,
+                                    "Subs": subs,
                                     "Viral Score": viral_score,
-                                    "Engagement": f"{engagement_rate}%",
+                                    "Engagement": f"{engagement}%",
                                     "Published": video["snippet"].get("publishedAt", "")[:10]
                                 })
                         
                         time.sleep(0.15)
                         
                     except Exception as e:
-                        if show_debug:
-                            st.write(f"Error: {str(e)}")
+                        continue
             
             status_text.empty()
+            key_status.empty()
             progress_bar.empty()
+            
+            if key_switches > 0:
+                st.info(f"🔄 Auto-switched API keys {key_switches} times during search")
             
             # DISPLAY RESULTS
             if all_results:
@@ -336,7 +323,7 @@ if st.button("🔍 SEARCH VIRAL OPPORTUNITIES", type="primary", use_container_wi
                 st.success(f"🎉 **Found {len(df)} viral opportunities across {len(df['Country'].unique())} countries!**")
                 
                 # Metrics
-                col1, col2, col3, col4, col5 = st.columns(5)
+                col1, col2, col3, col4 = st.columns(4)
                 with col1:
                     st.metric("Total Videos", len(df))
                 with col2:
@@ -345,20 +332,17 @@ if st.button("🔍 SEARCH VIRAL OPPORTUNITIES", type="primary", use_container_wi
                     st.metric("Avg Viral Score", f"{df['Viral Score'].mean():.1f}")
                 with col4:
                     st.metric("Total Views", f"{df['Views'].sum():,}")
-                with col5:
-                    very_high_cpm = len(df[df['CPM Tier'] == 'Very High'])
-                    st.metric("Very High CPM", very_high_cpm)
                 
-                # Country Breakdown
+                # Country breakdown
                 st.subheader("📊 Results by Country")
-                country_stats = df.groupby(['Country', 'CPM Tier']).agg({
+                country_stats = df.groupby('Country').agg({
                     'Title': 'count',
                     'Views': 'sum',
                     'Viral Score': 'mean'
                 }).rename(columns={'Title': 'Videos', 'Views': 'Total Views', 'Viral Score': 'Avg Viral'})
                 st.dataframe(country_stats, use_container_width=True)
                 
-                # Full Results
+                # Full table
                 st.subheader("📋 All Results")
                 st.dataframe(df, use_container_width=True, height=400)
                 
@@ -367,14 +351,14 @@ if st.button("🔍 SEARCH VIRAL OPPORTUNITIES", type="primary", use_container_wi
                 st.download_button(
                     "📥 Download Full Report (CSV)",
                     data=csv,
-                    file_name=f"viral_global_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                    file_name=f"viral_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
                     mime="text/csv",
                     use_container_width=True
                 )
                 
-                # Top 25 Results
-                st.subheader("🔥 Top 25 Viral Opportunities")
-                for idx, row in df.head(25).iterrows():
+                # Top 20
+                st.subheader("🔥 Top 20 Viral Opportunities")
+                for idx, row in df.head(20).iterrows():
                     with st.expander(f"#{idx+1} [{row['Country']}] {row['Title']}"):
                         col1, col2 = st.columns([3, 1])
                         with col1:
@@ -384,11 +368,10 @@ if st.button("🔍 SEARCH VIRAL OPPORTUNITIES", type="primary", use_container_wi
                         with col2:
                             st.metric("Viral Score", f"{row['Viral Score']:.1f}")
                             st.metric("Views", f"{row['Views']:,}")
-                            st.metric("Subs", f"{row['Subscribers']:,}")
-                            st.info(f"**{row['CPM Tier']} CPM**")
+                            st.metric("Subs", f"{row['Subs']:,}")
+                            st.metric("Engagement", row['Engagement'])
             else:
-                st.warning("❌ No results found.")
-                st.info("Try: Fast mode, fewer countries, or lower Min Views to 500")
+                st.warning("❌ No results found. Try adjusting filters or different countries.")
         
         except Exception as e:
             st.error(f"⚠️ Error: {e}")
@@ -396,23 +379,20 @@ if st.button("🔍 SEARCH VIRAL OPPORTUNITIES", type="primary", use_container_wi
 # Sidebar Info
 with st.sidebar:
     st.markdown("---")
-    st.subheader("💰 CPM Tiers Explained")
+    st.subheader("🔑 Your API Keys")
+    st.success("✅ 4 Keys Active")
+    st.metric("Total Daily Quota", "40,000 units")
+    st.caption("Each key: 10,000 units")
+    st.caption("Resets: Midnight PT (12:30 PM IST)")
+    
+    st.markdown("---")
+    st.subheader("💡 What You Can Do")
     st.markdown("""
-    **Very High ($13-36):** USA, Australia, Norway, UK, Canada, Switzerland, NZ, Denmark
+    **With 40K units you can:**
+    - 100 keywords × 4 countries
+    - 40 keywords × 10 countries
+    - 20 keywords × 20 countries
     
-    **High ($8-22):** Germany, Netherlands, Sweden, Belgium, Austria, Finland, Ireland, France, Singapore, Japan
-    
-    **Medium-High ($7-12):** Spain, Italy, Korea, UAE, Israel, Hong Kong, Poland, Czechia, Portugal
-    
-    **Medium ($5-8):** Mexico, Brazil, Saudi Arabia, Greece, Romania, Hungary, South Africa
+    **Key rotation is automatic!**
+    When one key hits limit, script switches to next key instantly.
     """)
-    
-    st.markdown("---")
-    st.info("**🚫 Excluded:** All South Asian countries (India, Pakistan, Bangladesh, Sri Lanka, Nepal)")
-    
-    st.markdown("---")
-    if target_regions:
-        estimated_cost = len(keywords) * len(target_regions) * 100
-        st.warning(f"⚠️ **API Cost:** ~{estimated_cost:,} units")
-        if estimated_cost > 10000:
-            st.error("⚠️ Exceeds daily limit! Use Fast mode or fewer countries.")
