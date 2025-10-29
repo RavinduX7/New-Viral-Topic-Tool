@@ -12,125 +12,206 @@ YOUTUBE_CHANNEL_URL = "https://www.googleapis.com/youtube/v3/channels"
 
 # Streamlit App Configuration
 st.set_page_config(page_title="Premium Viral Niche Finder", layout="wide")
-st.title("💰 Premium YouTube Automation Finder (High CPM Markets)")
-st.markdown("*Target USA, UK, CA, AU, DE viewers with high purchasing power (50+ demographic)*")
+st.title("💰 YouTube Viral Finder - Global High-CPM Markets")
+st.markdown("*Target 30+ premium countries (excluding South Asia)*")
 
-# Sidebar Configuration
+# ===== EXPANDED COUNTRY FILTER =====
+st.sidebar.header("🌍 SELECT TARGET COUNTRIES")
+
+# Organize by CPM tier
+st.sidebar.markdown("### 🥇 Tier 1: Highest CPM ($7-32)")
+col1, col2 = st.sidebar.columns(2)
+with col1:
+    us = st.sidebar.checkbox("🇺🇸 USA ($32)", value=True, key="us")
+    au = st.sidebar.checkbox("🇦🇺 Australia ($36)", value=True, key="au")
+    no = st.sidebar.checkbox("🇳🇴 Norway ($20)", value=False, key="no")
+    gb = st.sidebar.checkbox("🇬🇧 UK ($13)", value=True, key="gb")
+    ca = st.sidebar.checkbox("🇨🇦 Canada ($29)", value=False, key="ca")
+with col2:
+    ch = st.sidebar.checkbox("🇨🇭 Switzerland ($23)", value=False, key="ch")
+    nz = st.sidebar.checkbox("🇳🇿 New Zealand ($28)", value=False, key="nz")
+    dk = st.sidebar.checkbox("🇩🇰 Denmark ($17)", value=False, key="dk")
+    de = st.sidebar.checkbox("🇩🇪 Germany ($14)", value=False, key="de")
+
+st.sidebar.markdown("### 🥈 Tier 2: Very High CPM ($4-7)")
+col3, col4 = st.sidebar.columns(2)
+with col3:
+    nl = st.sidebar.checkbox("🇳🇱 Netherlands ($18)", value=False, key="nl")
+    se = st.sidebar.checkbox("🇸🇪 Sweden ($18)", value=False, key="se")
+    be = st.sidebar.checkbox("🇧🇪 Belgium ($20)", value=False, key="be")
+    at = st.sidebar.checkbox("🇦🇹 Austria ($11)", value=False, key="at")
+    fi = st.sidebar.checkbox("🇫🇮 Finland ($22)", value=False, key="fi")
+with col4:
+    ie = st.sidebar.checkbox("🇮🇪 Ireland ($8)", value=False, key="ie")
+    fr = st.sidebar.checkbox("🇫🇷 France ($10)", value=False, key="fr")
+    sg = st.sidebar.checkbox("🇸🇬 Singapore ($9)", value=False, key="sg")
+    jp = st.sidebar.checkbox("🇯🇵 Japan ($11)", value=False, key="jp")
+
+st.sidebar.markdown("### 🥉 Tier 3: High CPM ($2-4)")
+col5, col6 = st.sidebar.columns(2)
+with col5:
+    es = st.sidebar.checkbox("🇪🇸 Spain ($8)", value=False, key="es")
+    it = st.sidebar.checkbox("🇮🇹 Italy ($8)", value=False, key="it")
+    kr = st.sidebar.checkbox("🇰🇷 South Korea ($12)", value=False, key="kr")
+    ae = st.sidebar.checkbox("🇦🇪 UAE ($8)", value=False, key="ae")
+    il = st.sidebar.checkbox("🇮🇱 Israel ($9)", value=False, key="il")
+with col6:
+    hk = st.sidebar.checkbox("🇭🇰 Hong Kong ($12)", value=False, key="hk")
+    pl = st.sidebar.checkbox("🇵🇱 Poland ($8)", value=False, key="pl")
+    cz = st.sidebar.checkbox("🇨🇿 Czech Rep ($7)", value=False, key="cz")
+    pt = st.sidebar.checkbox("🇵🇹 Portugal ($11)", value=False, key="pt")
+
+st.sidebar.markdown("### 💵 Tier 4: Medium-High CPM ($1-2)")
+col7, col8 = st.sidebar.columns(2)
+with col7:
+    mx = st.sidebar.checkbox("🇲🇽 Mexico ($8)", value=False, key="mx")
+    br = st.sidebar.checkbox("🇧🇷 Brazil ($5)", value=False, key="br")
+    sa = st.sidebar.checkbox("🇸🇦 Saudi Arabia ($8)", value=False, key="sa")
+    gr = st.sidebar.checkbox("🇬🇷 Greece ($8)", value=False, key="gr")
+with col8:
+    ro = st.sidebar.checkbox("🇷🇴 Romania ($7)", value=False, key="ro")
+    hu = st.sidebar.checkbox("🇭🇺 Hungary ($6)", value=False, key="hu")
+    za = st.sidebar.checkbox("🇿🇦 South Africa ($6)", value=False, key="za")
+
+# Build country mapping
+country_map = {
+    # Tier 1 (Highest CPM)
+    "us": ("US", "🇺🇸 USA", "Very High", "$32"),
+    "au": ("AU", "🇦🇺 Australia", "Very High", "$36"),
+    "no": ("NO", "🇳🇴 Norway", "Very High", "$20"),
+    "gb": ("GB", "🇬🇧 UK", "Very High", "$13"),
+    "ca": ("CA", "🇨🇦 Canada", "Very High", "$29"),
+    "ch": ("CH", "🇨🇭 Switzerland", "Very High", "$23"),
+    "nz": ("NZ", "🇳🇿 New Zealand", "Very High", "$28"),
+    "dk": ("DK", "🇩🇰 Denmark", "Very High", "$17"),
+    "de": ("DE", "🇩🇪 Germany", "High", "$14"),
+    # Tier 2 (Very High CPM)
+    "nl": ("NL", "🇳🇱 Netherlands", "High", "$18"),
+    "se": ("SE", "🇸🇪 Sweden", "High", "$18"),
+    "be": ("BE", "🇧🇪 Belgium", "High", "$20"),
+    "at": ("AT", "🇦🇹 Austria", "High", "$11"),
+    "fi": ("FI", "🇫🇮 Finland", "High", "$22"),
+    "ie": ("IE", "🇮🇪 Ireland", "High", "$8"),
+    "fr": ("FR", "🇫🇷 France", "High", "$10"),
+    "sg": ("SG", "🇸🇬 Singapore", "High", "$9"),
+    "jp": ("JP", "🇯🇵 Japan", "High", "$11"),
+    # Tier 3 (High CPM)
+    "es": ("ES", "🇪🇸 Spain", "Medium-High", "$8"),
+    "it": ("IT", "🇮🇹 Italy", "Medium-High", "$8"),
+    "kr": ("KR", "🇰🇷 South Korea", "Medium-High", "$12"),
+    "ae": ("AE", "🇦🇪 UAE", "Medium-High", "$8"),
+    "il": ("IL", "🇮🇱 Israel", "Medium-High", "$9"),
+    "hk": ("HK", "🇭🇰 Hong Kong", "Medium-High", "$12"),
+    "pl": ("PL", "🇵🇱 Poland", "Medium-High", "$8"),
+    "cz": ("CZ", "🇨🇿 Czechia", "Medium-High", "$7"),
+    "pt": ("PT", "🇵🇹 Portugal", "Medium-High", "$11"),
+    # Tier 4 (Medium-High CPM)
+    "mx": ("MX", "🇲🇽 Mexico", "Medium", "$8"),
+    "br": ("BR", "🇧🇷 Brazil", "Medium", "$5"),
+    "sa": ("SA", "🇸🇦 Saudi Arabia", "Medium", "$8"),
+    "gr": ("GR", "🇬🇷 Greece", "Medium", "$8"),
+    "ro": ("RO", "🇷🇴 Romania", "Medium", "$7"),
+    "hu": ("HU", "🇭🇺 Hungary", "Medium", "$6"),
+    "za": ("ZA", "🇿🇦 South Africa", "Medium", "$6"),
+}
+
+# Build selected regions list
+target_regions = []
+selected_countries_display = []
+for key, (code, name, tier, cpm) in country_map.items():
+    if locals()[key]:  # Check if checkbox is selected
+        target_regions.append(code)
+        selected_countries_display.append(name)
+
+# Display selected countries
+if target_regions:
+    st.sidebar.success(f"✅ **Selected {len(target_regions)} countries**")
+    with st.sidebar.expander("View Selected Countries"):
+        st.write(", ".join(selected_countries_display))
+else:
+    st.sidebar.error("⚠️ Select at least one country!")
+
+st.sidebar.markdown("---")
+
+# Other Settings
 st.sidebar.header("⚙️ Search Settings")
-days = st.sidebar.number_input("Days to Search (1-30):", min_value=1, max_value=30, value=14)
+days = st.sidebar.number_input("Days to Search:", min_value=1, max_value=30, value=14)
 max_subs = st.sidebar.number_input("Max Subscribers:", min_value=100, max_value=100000, value=15000)
 min_views = st.sidebar.number_input("Minimum Views:", min_value=100, max_value=1000000, value=1000)
-results_per_keyword = st.sidebar.slider("Results Per Keyword:", 3, 10, 5)
+results_per_keyword = st.sidebar.slider("Results Per Keyword:", 5, 20, 10)
 
-# Target Markets Selection
-st.sidebar.subheader("🌍 Target Markets")
-target_regions = st.sidebar.multiselect(
-    "Select Countries (High CPM):",
-    ["US", "GB", "CA", "AU", "DE"],
-    default=["US", "GB", "CA", "AU", "DE"]
+# Search Strategy
+st.sidebar.subheader("🎯 Search Strategy")
+search_mode = st.sidebar.radio(
+    "Choose Mode:",
+    ["Fast (20 keywords)", "Balanced (40 keywords)", "Deep (100+ keywords)"]
 )
 
 show_debug = st.sidebar.checkbox("Show Debug Info", value=False)
 
-# HIGH CPM KEYWORDS TARGETING 50+ DEMOGRAPHIC (High Purchasing Power)
-keywords = [
-    # RETIREMENT & FINANCE (HIGHEST CPM: $15-30) - Perfect for 50+
-    "Retirement Planning", "Retirement Income Strategies", "Social Security Tips",
-    "How to Retire Early", "Retirement Savings", "401k Withdrawal Strategies",
-    "Pension Planning", "Retirement Budget", "Best Places to Retire",
-    "Retirement Advice", "Financial Planning for Retirement", "Retire at 60",
-    "Medicare Explained", "Retirement Living", "Downsizing in Retirement",
-    "Retirement Investment Strategies", "Tax Planning Retirement", "Estate Planning",
-    
-    # PERSONAL FINANCE & INVESTING (HIGH CPM: $12-25) - Appeals to Wealth Demographic
-    "Personal Finance Tips", "Investment Strategies", "Stock Market Investing",
-    "Real Estate Investing", "Passive Income Ideas", "Dividend Investing",
-    "Financial Independence", "Wealth Building", "Money Management",
-    "Smart Investing", "Financial Advice", "Investment Portfolio",
-    
-    # HEALTH & WELLNESS FOR SENIORS (HIGH CPM: $8-15) - Huge 50+ Market
-    "Health Tips for Seniors", "Healthy Aging", "Senior Fitness",
-    "Arthritis Pain Relief", "Heart Health Tips", "Blood Pressure Control",
-    "Diabetes Management", "Weight Loss After 50", "Senior Nutrition",
-    "Joint Pain Relief", "Memory Improvement", "Brain Health",
-    "Senior Wellness", "Aging Well", "Longevity Tips",
-    
-    # MEDICARE & INSURANCE (VERY HIGH CPM: $20-40) - 50+ Essential Topic
-    "Medicare Explained", "Medicare Advantage", "Medicare Supplement",
-    "Medicare Part D", "Health Insurance for Seniors", "Life Insurance Over 50",
-    "Long Term Care Insurance", "Medicare Open Enrollment",
-    
-    # REAL ESTATE (HIGH CPM: $10-20) - Appeals to Property Owners
-    "Real Estate Tips", "Buying a House", "Selling Your Home",
-    "Home Equity", "Reverse Mortgage Explained", "Downsizing Your Home",
-    "Real Estate Market", "Property Investment", "Home Buying Guide",
-    
-    # TECHNOLOGY FOR SENIORS (MEDIUM CPM: $6-12) - Growing Demographic
-    "Technology for Seniors", "Smartphone Tutorial", "iPad for Beginners",
-    "Facebook for Seniors", "Online Security Tips", "Avoiding Scams",
-    "Easy Tech Tips", "Computer Basics", "Internet Safety Seniors",
-    
-    # COOKING & RECIPES (MEDIUM CPM: $4-8) - Traditional Cooking Appeals to 50+
-    "Traditional Recipes", "Classic Cooking", "Comfort Food Recipes",
-    "Easy Dinner Recipes", "Healthy Cooking", "Meal Prep for Seniors",
-    "Cooking for Two", "Quick Dinner Ideas", "Budget Cooking",
-    
-    # GARDENING & HOMESTEADING (MEDIUM CPM: $5-10) - Popular with 50+
-    "Gardening Tips", "Vegetable Garden", "Backyard Gardening",
-    "Container Gardening", "Garden Design", "Homesteading",
-    "Raised Bed Garden", "Flower Gardening", "Organic Gardening",
-    
-    # TRAVEL FOR SENIORS (MEDIUM CPM: $6-12) - Retirees Love Travel
-    "Senior Travel Tips", "Best Travel Destinations", "RV Living",
-    "Retirement Travel", "Budget Travel", "Travel Over 60",
-    "Cruise Travel", "European Travel", "Travel Safety Tips",
-    
-    # HOME IMPROVEMENT & DIY (MEDIUM CPM: $6-10) - Homeowner Demographic
-    "Home Improvement", "DIY Projects", "Home Repair", "Home Renovation",
-    "Home Organization", "Woodworking Projects", "Painting Tips",
-    
-    # LEGAL & ESTATE PLANNING (HIGH CPM: $15-30) - Critical for 50+
-    "Estate Planning", "Will and Testament", "Power of Attorney",
-    "Living Trust", "Probate Process", "Legal Advice Seniors",
-    
-    # RELATIONSHIP & FAMILY (MEDIUM CPM: $5-10) - Grandparenting Content
-    "Grandparenting Tips", "Family Relationships", "Marriage After 50",
-    "Dating Over 50", "Relationship Advice", "Dealing with Adult Children",
-    
-    # HISTORY & DOCUMENTARIES (MEDIUM CPM: $5-8) - Educational Content for Mature Audience
-    "World War 2 Documentary", "History Channel", "Ancient History",
-    "American History", "Historical Events", "History Explained",
-    "Cold War History", "Vietnam War", "World History",
-    
-    # NEWS & CURRENT EVENTS (MEDIUM CPM: $4-8) - Engaged Political Demographics
-    "Breaking News", "Political News", "Economic News", "World News",
-    "Business News", "Financial News", "Current Events",
-    
-    # CLASSIC CARS & HOBBIES (MEDIUM CPM: $6-12) - Appeals to Male 50+
-    "Classic Cars", "Car Restoration", "Vintage Cars", "Muscle Cars",
-    "Car Collecting", "Car Shows", "Antique Cars",
-    
-    # FAITH & SPIRITUALITY (MEDIUM CPM: $5-10) - Strong 50+ Demographic
-    "Christian Faith", "Bible Study", "Spiritual Growth", "Prayer",
-    "Church Services", "Faith Journey", "Religious Teaching",
-]
+# KEYWORDS (Same as before)
+if search_mode == "Fast (20 keywords)":
+    keywords = [
+        "how to retire early", "retirement planning tips", "best retirement advice",
+        "social security tips", "medicare explained", "passive income ideas",
+        "real estate investing beginners", "how to lose weight after 50",
+        "health tips for seniors", "dividend investing explained",
+        "side hustle ideas", "make money online", "stock market beginners",
+        "gardening tips beginners", "home improvement ideas",
+        "best places to retire", "cooking for two", "senior fitness",
+        "financial planning retirement", "downsizing tips",
+    ]
+elif search_mode == "Balanced (40 keywords)":
+    keywords = [
+        "how to retire early", "retirement planning tips", "best retirement advice",
+        "social security tips", "how to save for retirement", "retirement income ideas",
+        "medicare explained", "medicare advantage plans", "financial planning retirement",
+        "how to lose weight after 50", "health tips for seniors", "senior fitness",
+        "arthritis pain relief", "heart health tips", "healthy aging tips",
+        "real estate investing beginners", "passive income ideas", "dividend investing",
+        "stock market beginners", "how to invest money", "side hustle ideas",
+        "make money online", "financial freedom tips",
+        "gardening tips beginners", "vegetable garden tips", "home improvement ideas",
+        "best places to retire", "RV living full time", "downsizing your home",
+        "cooking for two", "easy dinner recipes", "budget cooking tips",
+        "smartphone tips seniors", "avoiding online scams", "world war 2 documentary",
+        "american history explained", "ancient civilizations",
+    ]
+else:  # Deep
+    keywords = [
+        "how to retire early", "retirement planning tips", "best retirement advice",
+        "social security tips 2025", "how to save for retirement", "retirement income ideas",
+        "retirement mistakes avoid", "retire on social security", "early retirement tips",
+        "medicare explained simply", "medicare vs medicare advantage", "medicare supplement plans",
+        "medicare part d plans", "health insurance seniors", "long term care insurance",
+        "how to lose weight after 50", "health tips for seniors", "senior fitness routine",
+        "arthritis pain relief natural", "heart health after 60", "blood pressure control",
+        "diabetes management tips", "joint pain relief", "healthy aging secrets",
+        "real estate investing beginners", "passive income ideas 2025", "dividend investing explained",
+        "stock market basics", "how to invest in stocks", "best investment strategies",
+        "side hustle ideas 2025", "make money online", "work from home jobs",
+        "affiliate marketing beginners", "dropshipping tutorial",
+        "home improvement ideas", "DIY home projects", "gardening tips beginners",
+        "vegetable garden tips", "container gardening", "home organization tips",
+        "easy dinner recipes", "cooking for two", "quick meal ideas",
+        "best places to retire", "RV living full time", "retirement travel tips",
+        "relationship advice over 50", "dating after 50", "grandparenting tips",
+        "world war 2 documentary", "ancient history explained", "cold war documentary",
+        "smartphone tips seniors", "avoiding online scams", "facebook tutorial seniors",
+        "estate planning explained", "how to write a will", "living trust vs will",
+        "classic car restoration", "woodworking for beginners", "fishing tips beginners",
+    ]
 
-# Function to check if channel is from target countries
-def is_target_region(channel_data):
-    """Check if channel is from target countries (approximation via description/content)"""
-    # Note: YouTube API doesn't directly filter by uploader country reliably
-    # This is a limitation of the API, but we use regionCode to influence results
-    return True  # We'll rely on regionCode parameter in search
-
-# Fetch Data Button
-if st.button("🔍 Find Premium Opportunities", type="primary"):
+# Main Search Button
+if st.button("🔍 SEARCH VIRAL OPPORTUNITIES", type="primary", use_container_width=True):
     if not target_regions:
-        st.error("⚠️ Please select at least one target country!")
+        st.error("⚠️ **Please select at least one country!**")
     else:
+        st.info(f"**🌍 Searching {len(target_regions)} countries:** {', '.join(selected_countries_display[:5])}{'...' if len(selected_countries_display) > 5 else ''}")
+        
         try:
             start_date = (datetime.utcnow() - timedelta(days=int(days))).isoformat("T") + "Z"
             all_results = []
-            api_errors = []
             total_videos_found = 0
             
             progress_bar = st.progress(0)
@@ -139,13 +220,15 @@ if st.button("🔍 Find Premium Opportunities", type="primary"):
             total_searches = len(keywords) * len(target_regions)
             current_search = 0
             
-            # Search for each region
-            for region in target_regions:
-                st.write(f"🌍 **Searching in: {region}**")
+            # Search each country
+            for region_code in target_regions:
+                # Get country display name
+                region_name = next((name for key, (code, name, _, _) in country_map.items() if code == region_code), region_code)
+                st.write(f"### 🔎 {region_name}")
                 
                 for keyword in keywords:
                     current_search += 1
-                    status_text.text(f"Searching: {keyword} in {region} ({current_search}/{total_searches})")
+                    status_text.text(f"[{region_name}] {keyword} ({current_search}/{total_searches})")
                     progress_bar.progress(current_search / total_searches)
                     
                     search_params = {
@@ -155,8 +238,9 @@ if st.button("🔍 Find Premium Opportunities", type="primary"):
                         "order": "date",
                         "publishedAfter": start_date,
                         "maxResults": results_per_keyword,
-                        "regionCode": region,  # Target specific country
-                        "relevanceLanguage": "en",  # English content
+                        "regionCode": region_code,
+                        "relevanceLanguage": "en",
+                        "videoDuration": "medium",
                         "key": API_KEY,
                     }
                     
@@ -164,11 +248,10 @@ if st.button("🔍 Find Premium Opportunities", type="primary"):
                         response = requests.get(YOUTUBE_SEARCH_URL, params=search_params, timeout=10)
                         data = response.json()
                         
-                        if show_debug and current_search <= 3:
-                            st.write(f"**Sample API Response for '{keyword}' in {region}:**", data)
-                        
                         if "error" in data:
-                            api_errors.append(f"{keyword} ({region}): {data['error'].get('message', 'Unknown')}")
+                            if "quotaExceeded" in str(data.get("error", {})):
+                                st.error("⚠️ **API Quota Exceeded!** Reduce countries/keywords.")
+                                break
                             continue
                         
                         if "items" not in data or not data["items"]:
@@ -177,26 +260,22 @@ if st.button("🔍 Find Premium Opportunities", type="primary"):
                         videos = data["items"]
                         total_videos_found += len(videos)
                         
-                        video_ids = [video["id"]["videoId"] for video in videos if "id" in video and "videoId" in video["id"]]
-                        channel_ids = [video["snippet"]["channelId"] for video in videos if "snippet" in video and "channelId" in video["snippet"]]
+                        video_ids = [v["id"]["videoId"] for v in videos if "id" in v and "videoId" in v["id"]]
+                        channel_ids = [v["snippet"]["channelId"] for v in videos if "snippet" in v]
                         
-                        if not video_ids or not channel_ids:
+                        if not video_ids:
                             continue
                         
-                        # Fetch video statistics
+                        # Get statistics
                         stats_params = {"part": "statistics", "id": ",".join(video_ids), "key": API_KEY}
                         stats_response = requests.get(YOUTUBE_VIDEO_URL, params=stats_params, timeout=10)
                         stats_data = stats_response.json()
                         
-                        if "items" not in stats_data:
-                            continue
-                        
-                        # Fetch channel statistics
                         channel_params = {"part": "statistics", "id": ",".join(channel_ids), "key": API_KEY}
                         channel_response = requests.get(YOUTUBE_CHANNEL_URL, params=channel_params, timeout=10)
                         channel_data = channel_response.json()
                         
-                        if "items" not in channel_data:
+                        if "items" not in stats_data or "items" not in channel_data:
                             continue
                         
                         stats = stats_data["items"]
@@ -218,24 +297,18 @@ if st.button("🔍 Find Premium Opportunities", type="primary"):
                             comments = int(stat["statistics"].get("commentCount", 0))
                             subs = int(channel["statistics"].get("subscriberCount", 0))
                             
-                            # APPLY FILTERS
                             if subs <= max_subs and views >= min_views:
                                 viral_score = round(views / max(subs, 1), 2)
                                 engagement_rate = round(((likes + comments) / views * 100), 2) if views > 0 else 0
                                 
-                                # Estimate CPM based on keyword category
-                                cpm_estimate = "Medium"
-                                if any(k in keyword.lower() for k in ["retirement", "medicare", "insurance", "estate", "investment", "finance"]):
-                                    cpm_estimate = "Very High ($15-40)"
-                                elif any(k in keyword.lower() for k in ["real estate", "health", "legal", "tax"]):
-                                    cpm_estimate = "High ($8-20)"
-                                else:
-                                    cpm_estimate = "Medium ($4-10)"
+                                # Get CPM tier for this country
+                                cpm_tier = next((tier for key, (code, _, tier, _) in country_map.items() if code == region_code), "Medium")
                                 
                                 all_results.append({
-                                    "Region": region,
+                                    "Country": region_name,
+                                    "CPM Tier": cpm_tier,
                                     "Keyword": keyword,
-                                    "Title": video["snippet"].get("title", "N/A"),
+                                    "Title": video["snippet"].get("title", "N/A")[:80],
                                     "URL": f"https://www.youtube.com/watch?v={video_id}",
                                     "Views": views,
                                     "Likes": likes,
@@ -243,123 +316,103 @@ if st.button("🔍 Find Premium Opportunities", type="primary"):
                                     "Subscribers": subs,
                                     "Viral Score": viral_score,
                                     "Engagement": f"{engagement_rate}%",
-                                    "Est. CPM": cpm_estimate,
                                     "Published": video["snippet"].get("publishedAt", "")[:10]
                                 })
                         
                         time.sleep(0.15)
                         
-                    except requests.exceptions.Timeout:
-                        api_errors.append(f"{keyword} ({region}): Timeout")
                     except Exception as e:
-                        api_errors.append(f"{keyword} ({region}): {str(e)}")
+                        if show_debug:
+                            st.write(f"Error: {str(e)}")
             
             status_text.empty()
             progress_bar.empty()
             
-            # Show debug info
-            if show_debug:
-                st.info(f"📊 **Debug:** Videos fetched: {total_videos_found} | After filtering: {len(all_results)}")
-                if api_errors:
-                    with st.expander("⚠️ API Errors"):
-                        st.write("\n".join(api_errors[:20]))
-            
-            # Display Results
+            # DISPLAY RESULTS
             if all_results:
                 df = pd.DataFrame(all_results)
                 df = df.sort_values("Viral Score", ascending=False)
                 
-                st.success(f"💰 Found {len(df)} PREMIUM opportunities in {', '.join(target_regions)}!")
+                st.success(f"🎉 **Found {len(df)} viral opportunities across {len(df['Country'].unique())} countries!**")
                 
-                # Display Key Metrics
+                # Metrics
                 col1, col2, col3, col4, col5 = st.columns(5)
                 with col1:
                     st.metric("Total Videos", len(df))
                 with col2:
-                    st.metric("Avg Viral Score", f"{df['Viral Score'].mean():.2f}")
+                    st.metric("Countries", len(df['Country'].unique()))
                 with col3:
-                    st.metric("Total Views", f"{df['Views'].sum():,}")
+                    st.metric("Avg Viral Score", f"{df['Viral Score'].mean():.1f}")
                 with col4:
-                    st.metric("Top Score", f"{df['Viral Score'].max():.2f}")
+                    st.metric("Total Views", f"{df['Views'].sum():,}")
                 with col5:
-                    very_high_cpm = len(df[df['Est. CPM'].str.contains('Very High', na=False)])
+                    very_high_cpm = len(df[df['CPM Tier'] == 'Very High'])
                     st.metric("Very High CPM", very_high_cpm)
                 
-                # CPM Distribution
-                st.subheader("💵 CPM Distribution")
-                cpm_counts = df['Est. CPM'].value_counts()
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric("Very High CPM", cpm_counts.get('Very High ($15-40)', 0))
-                with col2:
-                    st.metric("High CPM", cpm_counts.get('High ($8-20)', 0))
-                with col3:
-                    st.metric("Medium CPM", cpm_counts.get('Medium ($4-10)', 0))
+                # Country Breakdown
+                st.subheader("📊 Results by Country")
+                country_stats = df.groupby(['Country', 'CPM Tier']).agg({
+                    'Title': 'count',
+                    'Views': 'sum',
+                    'Viral Score': 'mean'
+                }).rename(columns={'Title': 'Videos', 'Views': 'Total Views', 'Viral Score': 'Avg Viral'})
+                st.dataframe(country_stats, use_container_width=True)
                 
-                # Display DataFrame
+                # Full Results
+                st.subheader("📋 All Results")
                 st.dataframe(df, use_container_width=True, height=400)
                 
-                # Download CSV
+                # Download
                 csv = df.to_csv(index=False).encode('utf-8')
                 st.download_button(
-                    label="📥 Download Premium Report (CSV)",
+                    "📥 Download Full Report (CSV)",
                     data=csv,
-                    file_name=f"premium_opportunities_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                    file_name=f"viral_global_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
                     mime="text/csv",
+                    use_container_width=True
                 )
                 
-                # Top 15 Most Viral Videos
-                st.subheader("🔥 Top 15 Premium Opportunities")
-                for idx, row in df.head(15).iterrows():
-                    with st.expander(f"#{idx+1} - {row['Title'][:70]}... ({row['Region']})"):
-                        col1, col2 = st.columns([2, 1])
+                # Top 25 Results
+                st.subheader("🔥 Top 25 Viral Opportunities")
+                for idx, row in df.head(25).iterrows():
+                    with st.expander(f"#{idx+1} [{row['Country']}] {row['Title']}"):
+                        col1, col2 = st.columns([3, 1])
                         with col1:
                             st.write(f"**Keyword:** {row['Keyword']}")
                             st.write(f"**URL:** {row['URL']}")
-                            st.write(f"**Region:** {row['Region']}")
                             st.write(f"**Published:** {row['Published']}")
                         with col2:
-                            st.metric("Viral Score", row['Viral Score'])
+                            st.metric("Viral Score", f"{row['Viral Score']:.1f}")
                             st.metric("Views", f"{row['Views']:,}")
-                            st.metric("Subscribers", f"{row['Subscribers']:,}")
-                            st.metric("Engagement", row['Engagement'])
-                            st.info(f"**CPM:** {row['Est. CPM']}")
+                            st.metric("Subs", f"{row['Subscribers']:,}")
+                            st.info(f"**{row['CPM Tier']} CPM**")
             else:
-                st.warning("❌ No opportunities found with current settings.")
-                st.info("""
-                **💡 Optimization Tips:**
-                1. ✅ Increase Days to 21-30
-                2. ✅ Lower Min Views to 500
-                3. ✅ Increase Max Subs to 25,000
-                4. ✅ Try fewer target countries first
-                5. ✅ Enable Debug Mode to see API responses
-                """)
+                st.warning("❌ No results found.")
+                st.info("Try: Fast mode, fewer countries, or lower Min Views to 500")
         
         except Exception as e:
-            st.error(f"⚠️ Critical Error: {e}")
+            st.error(f"⚠️ Error: {e}")
 
-# Instructions
+# Sidebar Info
 with st.sidebar:
     st.markdown("---")
-    st.subheader("💡 Strategy Guide")
+    st.subheader("💰 CPM Tiers Explained")
     st.markdown("""
-    **Why This Works:**
-    - 50+ viewers = 48% of US consumer spending
-    - Higher ad engagement (10%+ better than Gen Z)
-    - Premium CPM rates ($15-40 for finance)
-    - Loyal, engaged audience
+    **Very High ($13-36):** USA, Australia, Norway, UK, Canada, Switzerland, NZ, Denmark
     
-    **Best Niches for 50+:**
-    1. 🏦 Retirement/Finance (Highest CPM)
-    2. 🏥 Health/Medicare (Very High CPM)
-    3. 🏠 Real Estate (High CPM)
-    4. 👴 Senior Lifestyle (Medium CPM)
-    5. 📚 History/Education (Steady views)
+    **High ($8-22):** Germany, Netherlands, Sweden, Belgium, Austria, Finland, Ireland, France, Singapore, Japan
+    
+    **Medium-High ($7-12):** Spain, Italy, Korea, UAE, Israel, Hong Kong, Poland, Czechia, Portugal
+    
+    **Medium ($5-8):** Mexico, Brazil, Saudi Arabia, Greece, Romania, Hungary, South Africa
     """)
     
     st.markdown("---")
-    st.warning(f"⚠️ **Estimated API Cost:** ~{len(keywords) * len(target_regions) * 100:,} units")
-    st.caption("You have 10,000 units/day. Optimize by reducing countries or keywords if needed.")
+    st.info("**🚫 Excluded:** All South Asian countries (India, Pakistan, Bangladesh, Sri Lanka, Nepal)")
     
     st.markdown("---")
-    st.info("🎯 **Pro Tip:** Focus on 'Very High CPM' results for maximum earnings!")
+    if target_regions:
+        estimated_cost = len(keywords) * len(target_regions) * 100
+        st.warning(f"⚠️ **API Cost:** ~{estimated_cost:,} units")
+        if estimated_cost > 10000:
+            st.error("⚠️ Exceeds daily limit! Use Fast mode or fewer countries.")
